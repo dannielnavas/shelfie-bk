@@ -1,0 +1,135 @@
+// Prisma schema for Mi Libro App
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// 1. SISTEMA DE USUARIOS Y MEMBRESÍAS
+// =============================================
+
+model Plan {
+  planId          Int     @id @default(autoincrement()) @map("plan_id")
+  nombre          String  @db.VarChar(50) // 'gratuito', 'premium'
+  limiteLibros    Int?    @map("limite_libros") // NULL para ilimitado
+  limiteIaMensual Int?    @map("limite_ia_mensual")
+  precio          Decimal @default(0) @db.Decimal(10, 2)
+
+  usuarios Usuario[]
+}
+
+model Usuario {
+  usuarioId        Int       @id @default(autoincrement()) @map("usuario_id")
+  nombre           String    @db.VarChar(100)
+  email            String    @unique @db.VarChar(150)
+  passwordHash     String?   @map("password_hash") @db.VarChar(255)
+  firebaseUid      String?   @unique @map("firebase_uid") @db.VarChar(128)
+  planId           Int       @default(1) @map("plan_id")
+  puntosXp         Int       @default(0) @map("puntos_xp")
+  nivel            Int       @default(1)
+  rachaLecturaDias Int       @default(0) @map("racha_lectura_dias")
+  ultimaLectura    DateTime? @map("ultima_lectura") @db.Timestamp()
+  fechaRegistro    DateTime  @default(now()) @map("fecha_registro") @db.Timestamp()
+
+  plan            Plan              @relation(fields: [planId], references: [planId])
+  libros          Libro[]
+  notas           NotaLibro[]
+  recomendaciones RecomendacionIA[]
+  logros          LogroUsuario[]
+}
+
+// =============================================
+// 2. GESTIÓN DE LA BIBLIOTECA PERSONAL
+// =============================================
+
+model Libro {
+  libroId         Int           @id @default(autoincrement()) @map("libro_id")
+  usuarioId       Int           @map("usuario_id")
+  isbn            String?       @db.VarChar(13)
+  titulo          String        @db.VarChar(255)
+  autor           String?       @db.VarChar(255)
+  descripcion     String?       @db.Text
+  imagenUrl       String?       @map("imagen_url") @db.Text
+  genero          String?       @db.VarChar(50)
+  paginasTotales  Int?          @map("paginas_totales")
+  paginasLeidas   Int           @default(0) @map("paginas_leidas")
+  esAdquirido     Boolean       @default(true) @map("es_adquirido") // false = Lista de Deseos
+  estadoLectura   EstadoLectura @map("estado_lectura")
+  estaPrestado    Boolean       @default(false) @map("esta_prestado")
+  prestadoANombre String?       @map("prestado_a_nombre") @db.VarChar(100)
+  fechaPrestamo   DateTime?     @map("fecha_prestamo") @db.Date
+  fechaAgregado   DateTime      @default(now()) @map("fecha_agregado") @db.Timestamp()
+
+  usuario Usuario     @relation(fields: [usuarioId], references: [usuarioId], onDelete: Cascade)
+  notas   NotaLibro[]
+}
+
+enum EstadoLectura {
+  pendiente
+  en_lectura @map("en lectura")
+  leido
+}
+
+// =============================================
+// 3. NOTAS, CITAS Y CONTENIDO
+// =============================================
+
+model NotaLibro {
+  notaId           Int      @id @default(autoincrement()) @map("nota_id")
+  libroId          Int      @map("libro_id")
+  usuarioId        Int      @map("usuario_id")
+  contenido        String   @db.Text
+  paginaReferencia Int?     @map("pagina_referencia")
+  esCitaDestacada  Boolean  @default(false) @map("es_cita_destacada")
+  fechaCreacion    DateTime @default(now()) @map("fecha_creacion") @db.Timestamp()
+
+  libro   Libro   @relation(fields: [libroId], references: [libroId], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [usuarioId])
+}
+
+// =============================================
+// 4. INTELIGENCIA ARTIFICIAL Y RECOMENDACIONES
+// =============================================
+
+model RecomendacionIA {
+  recomendacionId Int      @id @default(autoincrement()) @map("recomendacion_id")
+  usuarioId       Int      @map("usuario_id")
+  promptEnviado   String   @map("prompt_enviado") @db.Text
+  respuestaIaJson Json?    @map("respuesta_ia_json") @db.JsonB
+  modeloIa        String?  @map("modelo_ia") @db.VarChar(50)
+  fechaConsulta   DateTime @default(now()) @map("fecha_consulta") @db.Timestamp()
+
+  usuario Usuario @relation(fields: [usuarioId], references: [usuarioId], onDelete: Cascade)
+}
+
+// =============================================
+// 5. LOGROS (BADGES)
+// =============================================
+
+model Logro {
+  logroId          Int     @id @default(autoincrement()) @map("logro_id")
+  nombre           String? @db.VarChar(100)
+  descripcion      String? @db.Text
+  puntosRecompensa Int?    @map("puntos_recompensa")
+
+  usuarios LogroUsuario[]
+}
+
+model LogroUsuario {
+  usuarioId      Int      @map("usuario_id")
+  logroId        Int      @map("logro_id")
+  fechaObtencion DateTime @default(now()) @map("fecha_obtencion") @db.Timestamp()
+
+  usuario Usuario @relation(fields: [usuarioId], references: [usuarioId])
+  logro   Logro   @relation(fields: [logroId], references: [logroId])
+
+  @@id([usuarioId, logroId])
+  @@map("logros_usuario")
+}

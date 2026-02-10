@@ -23,7 +23,45 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Backend de **Mi Libro App** (Shelfie): NestJS, TypeScript, PostgreSQL y Prisma. Incluye Auth (JWT), usuarios con gamificación (XP/nivel/racha), libros con límites por plan, préstamos, notas y recomendaciones IA.
+
+### Cómo ejecutar
+
+1. **PostgreSQL con Docker**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Variables de entorno**
+   ```bash
+   cp .env.example .env
+   # Ajusta DATABASE_URL y JWT_SECRET si es necesario
+   ```
+
+3. **Migraciones y seed**
+   ```bash
+   pnpm prisma:migrate
+   pnpm prisma:seed
+   ```
+
+4. **API**
+   ```bash
+   pnpm start:dev
+   ```
+   Base URL: `http://localhost:3000/api` (prefijo global `/api`). CORS habilitado.
+
+**Login con Google (Firebase):** Configura en `.env` las variables `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` y `FIREBASE_PRIVATE_KEY` (cuenta de servicio en Firebase Console → Configuración del proyecto → Cuentas de servicio). El cliente debe enviar el ID Token que devuelve Firebase Auth tras iniciar sesión con Google; el backend lo verifica y devuelve el mismo JWT que el login normal.
+
+### Endpoints principales
+
+- `POST /api/auth/register` — Registro (público)
+- `POST /api/auth/login` — Login (público)
+- `POST /api/auth/google` — Login con Google (Firebase ID Token, público)
+- `GET /api/users/me` — Perfil (JWT)
+- `PATCH /api/users/me` — Actualizar perfil (JWT)
+- `GET/POST/PATCH/DELETE /api/books` — CRUD libros (JWT)
+- `PATCH /api/books/:id/paginas` — Actualizar páginas leídas (otorga XP y actualiza nivel/racha)
+- `POST /api/ai/recomendaciones` — Guardar prompt y respuesta IA (JWT)
 
 ## Project setup
 

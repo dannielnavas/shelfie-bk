@@ -1,0 +1,141 @@
+// Prisma schema for Shelfie (My Book App)
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================
+// 1. USERS AND MEMBERSHIPS
+// =============================================
+
+model Plan {
+  planId          Int      @id @default(autoincrement()) @map("plan_id")
+  name            String   @map("name") @db.VarChar(50) // 'free', 'premium'
+  bookLimit       Int?     @map("book_limit") // NULL for unlimited
+  monthlyAiLimit  Int?     @map("monthly_ai_limit")
+  price           Decimal  @default(0) @db.Decimal(10, 2)
+
+  users User[]
+  @@map("plans")
+}
+
+model User {
+  userId           Int      @id @default(autoincrement()) @map("user_id")
+  name             String   @db.VarChar(100)
+  email            String   @unique @db.VarChar(150)
+  passwordHash     String?  @map("password_hash") @db.VarChar(255)
+  firebaseUid      String?  @unique @map("firebase_uid") @db.VarChar(128)
+  planId           Int      @default(1) @map("plan_id")
+  xpPoints         Int      @default(0) @map("xp_points")
+  level            Int      @default(1)
+  readingStreakDays Int     @default(0) @map("reading_streak_days")
+  lastReadAt       DateTime? @map("last_read_at") @db.Timestamp()
+  registeredAt     DateTime @default(now()) @map("registered_at") @db.Timestamp()
+
+  plan            Plan              @relation(fields: [planId], references: [planId])
+  books           Book[]
+  bookNotes       BookNote[]
+  aiRecommendations AIRecommendation[]
+  userAchievements UserAchievement[]
+  @@map("users")
+}
+
+// =============================================
+// 2. PERSONAL LIBRARY
+// =============================================
+
+model Book {
+  bookId           Int      @id @default(autoincrement()) @map("book_id")
+  userId           Int      @map("user_id")
+  isbn             String?  @db.VarChar(13)
+  title            String   @map("title") @db.VarChar(255)
+  author           String?  @db.VarChar(255)
+  description      String?  @db.Text
+  imageUrl         String?  @map("image_url") @db.Text
+  genre            String?  @db.VarChar(50)
+  totalPages       Int?     @map("total_pages")
+  pagesRead        Int      @default(0) @map("pages_read")
+  isOwned          Boolean  @default(true) @map("is_owned") // false = Wishlist
+  readingStatus    ReadingStatus @map("reading_status")
+  isBorrowed       Boolean  @default(false) @map("is_borrowed")
+  borrowedToName   String?  @map("borrowed_to_name") @db.VarChar(100)
+  borrowedAt       DateTime? @map("borrowed_at") @db.Date
+  addedAt          DateTime @default(now()) @map("added_at") @db.Timestamp()
+
+  user  User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  notes BookNote[]
+}
+
+enum ReadingStatus {
+  pending
+  in_progress
+  read
+
+  @@map("reading_status")
+}
+
+// =============================================
+// 3. NOTES AND QUOTES
+// =============================================
+
+model BookNote {
+  noteId           Int      @id @default(autoincrement()) @map("note_id")
+  bookId           Int      @map("book_id")
+  userId           Int      @map("user_id")
+  content          String   @db.Text
+  pageReference    Int?     @map("page_reference")
+  isHighlightedQuote Boolean @default(false) @map("is_highlighted_quote")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp()
+
+  book   Book   @relation(fields: [bookId], references: [bookId], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [userId])
+  @@map("book_notes")
+}
+
+// =============================================
+// 4. AI RECOMMENDATIONS
+// =============================================
+
+model AIRecommendation {
+  recommendationId Int      @id @default(autoincrement()) @map("recommendation_id")
+  userId            Int      @map("user_id")
+  promptSent         String   @map("prompt_sent") @db.Text
+  aiResponseJson     Json?    @map("ai_response_json") @db.JsonB
+  aiModel            String?  @map("ai_model") @db.VarChar(50)
+  queriedAt          DateTime @default(now()) @map("queried_at") @db.Timestamp()
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  @@map("ai_recommendations")
+}
+
+// =============================================
+// 5. ACHIEVEMENTS (BADGES)
+// =============================================
+
+model Achievement {
+  achievementId   Int      @id @default(autoincrement()) @map("achievement_id")
+  name            String?  @db.VarChar(100)
+  description      String?  @db.Text
+  rewardPoints     Int?     @map("reward_points")
+
+  users UserAchievement[]
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId      Int      @map("user_id")
+  achievementId Int    @map("achievement_id")
+  earnedAt    DateTime @default(now()) @map("earned_at") @db.Timestamp()
+
+  user       User       @relation(fields: [userId], references: [userId])
+  achievement Achievement @relation(fields: [achievementId], references: [achievementId])
+
+  @@id([userId, achievementId])
+  @@map("user_achievements")
+}
