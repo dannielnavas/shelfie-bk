@@ -54,11 +54,7 @@ export class BooksController {
     @Param('id', ParseIntPipe) bookId: number,
     @Body() dto: UpdatePagesDto,
   ) {
-    return this.booksService.updatePagesRead(
-      userId,
-      bookId,
-      dto.pagesRead,
-    );
+    return this.booksService.updatePagesRead(userId, bookId, dto.pagesRead);
   }
 
   @Delete(':id')

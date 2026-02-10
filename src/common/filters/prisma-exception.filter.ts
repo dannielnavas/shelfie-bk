@@ -46,7 +46,8 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         this.logger.warn(
           `Prisma error ${exception.code}: ${exception.message}`,
         );
-        const msg = (exception.meta?.message as string) ?? exception.message ?? '';
+        const msg =
+          (exception.meta?.message as string) ?? exception.message ?? '';
         if (
           exception.code === 'P2021' ||
           /relation.*does not exist|table.*does not exist/i.test(msg)

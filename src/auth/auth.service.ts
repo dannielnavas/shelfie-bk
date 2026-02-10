@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Injectable,
   ConflictException,
@@ -109,10 +110,7 @@ export class AuthService {
 
     let user = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { firebaseUid: decoded.uid },
-          { email: decoded.email },
-        ],
+        OR: [{ firebaseUid: decoded.uid }, { email: decoded.email }],
       },
       select: {
         userId: true,

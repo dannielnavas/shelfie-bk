@@ -45,7 +45,10 @@ export class UsersService {
   }
 
   /** Adds XP to user and updates level if applicable. */
-  async addXp(userId: number, xpEarned: number): Promise<{ levelUp: boolean; newLevel: number }> {
+  async addXp(
+    userId: number,
+    xpEarned: number,
+  ): Promise<{ levelUp: boolean; newLevel: number }> {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       select: { xpPoints: true, level: true },
