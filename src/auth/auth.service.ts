@@ -53,7 +53,7 @@ export class AuthService {
     });
     const payload: JwtPayload = { sub: user.userId, email: user.email };
     const accessToken = this.jwtService.sign(payload);
-    return { user, accessToken };
+    return { accessToken };
   }
 
   async login(dto: LoginDto) {
@@ -75,7 +75,7 @@ export class AuthService {
     const payload: JwtPayload = { sub: user.userId, email: user.email };
     const accessToken = this.jwtService.sign(payload);
     const { passwordHash: _, ...safe } = user;
-    return { user: safe, accessToken };
+    return { accessToken };
   }
 
   async validateUser(userId: number) {
@@ -161,6 +161,6 @@ export class AuthService {
       email: user.email,
     };
     const accessToken = this.jwtService.sign(payload);
-    return { user, accessToken };
+    return { accessToken };
   }
 }

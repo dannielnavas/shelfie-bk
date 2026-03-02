@@ -70,6 +70,8 @@ model Book {
 
   user  User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
   notes BookNote[]
+
+  @@map("books")
 }
 
 enum ReadingStatus {

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
@@ -15,11 +17,16 @@ import { UpdatePagesDto } from './dto/update-paginas.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseIntPipe } from '@nestjs/common';
+import { BookSearchService } from '../book-search/book-search.service';
+import { SearchQueryDto } from '../book-search/dto/search-query.dto';
 
 @Controller('books')
 @UseGuards(JwtAuthGuard)
 export class BooksController {
-  constructor(private readonly booksService: BooksService) {}
+  constructor(
+    private readonly booksService: BooksService,
+    private readonly bookSearchService: BookSearchService,
+  ) {}
 
   @Post()
   create(@CurrentUser('userId') userId: number, @Body() dto: CreateBookDto) {
@@ -27,8 +34,32 @@ export class BooksController {
   }
 
   @Get()
-  findAll(@CurrentUser('userId') userId: number) {
+  async findAll(@CurrentUser('userId') userId: number) {
+    console.log('findAll', userId);
+    console.log(await this.booksService.findAll(userId));
     return this.booksService.findAll(userId);
+  }
+
+  /**
+   * Busca libros en fuentes externas (Google Books, Open Library).
+   * Devuelve un formato unificado compatible con POST /books para que el usuario
+   * pueda completar/editar y registrar el libro.
+   */
+  @Get('search')
+  search(@Query() query: SearchQueryDto) {
+    const limit = query.limit ?? 10;
+    const hasQ = query.q?.trim();
+    const hasIsbn = query.isbn?.trim();
+    if (!hasQ && !hasIsbn) {
+      throw new BadRequestException(
+        'Proporciona q (búsqueda por título/autor) o isbn (ISBN-10 o ISBN-13)',
+      );
+    }
+    return this.bookSearchService.search({
+      q: hasQ ? query.q!.trim() : undefined,
+      isbn: hasIsbn ? query.isbn!.trim() : undefined,
+      limit,
+    });
   }
 
   @Get(':id')
@@ -36,6 +67,7 @@ export class BooksController {
     @CurrentUser('userId') userId: number,
     @Param('id', ParseIntPipe) bookId: number,
   ) {
+    console.log('findOne', userId, bookId);
     return this.booksService.findOne(userId, bookId);
   }
 

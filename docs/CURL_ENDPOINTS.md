@@ -66,6 +66,25 @@ curl -X PATCH http://localhost:3000/api/users/me \
 
 ## 3. Libros (requieren JWT)
 
+### Buscar libros en fuentes externas (Google Books, Open Library)
+Devuelve un formato unificado para que puedas completar/editar y luego registrar el libro con POST /books. Puedes buscar **por título/autor** (`q`) o **por ISBN** (`isbn`); hay que enviar al menos uno.
+
+**Por título o autor:**
+```bash
+curl -X GET "http://localhost:3000/api/books/search?q=cien+años+soledad&limit=10" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+**Por ISBN (10 o 13 dígitos):**
+```bash
+curl -X GET "http://localhost:3000/api/books/search?isbn=9788437604947" \
+  -H "Authorization: Bearer TOKEN"
+```
+
+*Parámetros: `q` (texto, título/autor), `isbn` (ISBN-10 o ISBN-13, solo dígitos). Al menos uno obligatorio. `limit` (1–20, opcional, por defecto 10).*
+
+*Cada resultado incluye: `title`, `isbn`, `author`, `description`, `imageUrl`, `genre`, `totalPages`, `source` (google_books | open_library), `externalId`. Puedes enviar estos campos (completando los que falten) a POST /books para registrar el libro.*
+
 ### Crear libro
 ```bash
 curl -X POST http://localhost:3000/api/books \
