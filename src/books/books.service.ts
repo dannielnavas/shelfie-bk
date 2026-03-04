@@ -29,14 +29,19 @@ export class BooksService {
     if (bookLimit == null) return; // unlimited
     const count = await this.prisma.book.count({ where: { userId } });
     if (count >= bookLimit) {
-      throw new ForbiddenException(
-        `You have reached the limit of ${bookLimit} books for your plan. Upgrade to Premium for more.`,
-      );
+      throw new ForbiddenException({
+        statusCode: 403,
+        message:
+          'Límite de libros alcanzado para tu plan. Actualiza a Premium para añadir más.',
+        error: 'PLAN_LIMIT_REACHED',
+        limitType: 'books',
+      });
     }
   }
 
   async create(userId: number, dto: CreateBookDto) {
     await this.checkBookLimit(userId);
+
     return this.prisma.book.create({
       data: {
         userId,

@@ -16,8 +16,18 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const { passwordHash: _, ...safe } = user;
-    return safe;
+    const { passwordHash: _, plan, ...rest } = user;
+    return {
+      ...rest,
+      plan: plan && {
+        planId: plan.planId,
+        slug: plan.slug,
+        name: plan.name,
+        bookLimit: plan.bookLimit,
+        monthlyAiLimit: plan.monthlyAiLimit,
+        isPaid: plan.isPaid,
+      },
+    };
   }
 
   async update(userId: number, dto: UpdateUserDto) {

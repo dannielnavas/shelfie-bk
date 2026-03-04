@@ -71,7 +71,7 @@ export class BookSearchService {
     if (openLibraryResults.status === 'fulfilled') {
       results.push(...openLibraryResults.value);
     }
-    console.log(results);
+
     return results.slice(0, limit);
   }
 

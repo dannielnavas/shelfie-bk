@@ -14,19 +14,53 @@ export class AiService {
     if (!user?.plan) return;
     const { monthlyAiLimit } = user.plan;
     if (monthlyAiLimit == null) return;
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-    const count = await this.prisma.aIRecommendation.count({
+
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth() + 1; // 1-12
+
+    const usage = await this.prisma.monthlyAiUsage.findUnique({
       where: {
-        userId,
-        queriedAt: { gte: startOfMonth },
+        userId_year_month: {
+          userId,
+          year,
+          month,
+        },
       },
     });
-    if (count >= monthlyAiLimit) {
-      throw new ForbiddenException(
-        `You have reached the limit of ${monthlyAiLimit} AI queries this month. Upgrade to Premium for more.`,
-      );
+
+    if (usage && usage.count >= monthlyAiLimit) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        message:
+          'Has alcanzado el límite mensual de IA de tu plan. Actualiza a Premium para seguir usando esta función.',
+        error: 'PLAN_LIMIT_REACHED',
+        limitType: 'ai',
+      });
+    }
+
+    if (!usage) {
+      await this.prisma.monthlyAiUsage.create({
+        data: {
+          userId,
+          year,
+          month,
+          count: 1,
+        },
+      });
+    } else {
+      await this.prisma.monthlyAiUsage.update({
+        where: {
+          userId_year_month: {
+            userId,
+            year,
+            month,
+          },
+        },
+        data: {
+          count: usage.count + 1,
+        },
+      });
     }
   }
 

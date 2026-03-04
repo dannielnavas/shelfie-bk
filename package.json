@@ -23,6 +23,7 @@
     "prisma:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "prisma:migrate-books": "ts-node --project tsconfig.seed.json prisma/migrate-books-from-json.ts",
     "prisma:studio": "prisma studio",
+    "prisma:set-user-plan": "ts-node --project tsconfig.seed.json prisma/set-user-plan.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

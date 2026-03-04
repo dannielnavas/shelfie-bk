@@ -35,8 +35,6 @@ export class BooksController {
 
   @Get()
   async findAll(@CurrentUser('userId') userId: number) {
-    console.log('findAll', userId);
-    console.log(await this.booksService.findAll(userId));
     return this.booksService.findAll(userId);
   }
 
@@ -67,7 +65,6 @@ export class BooksController {
     @CurrentUser('userId') userId: number,
     @Param('id', ParseIntPipe) bookId: number,
   ) {
-    console.log('findOne', userId, bookId);
     return this.booksService.findOne(userId, bookId);
   }
 
