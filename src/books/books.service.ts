@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UsersService } from '../users/users.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { CreateBookDto } from './dto/create-libro.dto';
 import { UpdateBookDto } from './dto/update-libro.dto';
 import { ReadingStatus } from '@prisma/client';
@@ -17,6 +18,7 @@ export class BooksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   private async checkBookLimit(userId: number): Promise<void> {
@@ -91,6 +93,32 @@ export class BooksService {
     await this.findOne(userId, bookId);
     await this.prisma.book.delete({ where: { bookId } });
     return { message: 'Book deleted' };
+  }
+
+  async uploadCover(
+    userId: number,
+    bookId: number,
+    file: any | undefined,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No se recibió ningún archivo de imagen');
+    }
+
+    const book = await this.findOne(userId, bookId);
+
+    const imageUrl = await this.cloudinaryService.uploadImage(file.buffer, {
+      public_id: `book-${book.bookId}-${Date.now()}`,
+    });
+
+    const updated = await this.prisma.book.update({
+      where: { bookId: book.bookId },
+      data: { imageUrl },
+    });
+
+    return {
+      imageUrl,
+      book: updated,
+    };
   }
 
   /** Updates pages read, grants XP and updates streak/level if applicable. */

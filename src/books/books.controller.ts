@@ -9,6 +9,8 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { BooksService } from './books.service';
 import { CreateBookDto } from './dto/create-libro.dto';
@@ -18,6 +20,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { ParseIntPipe } from '@nestjs/common';
 import { BookSearchService } from '../book-search/book-search.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { SearchQueryDto } from '../book-search/dto/search-query.dto';
 
 @Controller('books')
@@ -66,6 +69,16 @@ export class BooksController {
     @Param('id', ParseIntPipe) bookId: number,
   ) {
     return this.booksService.findOne(userId, bookId);
+  }
+
+  @Post(':id/cover')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadCover(
+    @CurrentUser('userId') userId: number,
+    @Param('id', ParseIntPipe) bookId: number,
+    @UploadedFile() file: any,
+  ) {
+    return this.booksService.uploadCover(userId, bookId, file);
   }
 
   @Patch(':id')
