@@ -104,7 +104,19 @@ export class BooksService {
       throw new BadRequestException('No se recibió ningún archivo de imagen');
     }
 
-    const book = await this.findOne(userId, bookId);
+    const [book, user] = await Promise.all([
+      this.findOne(userId, bookId),
+      this.prisma.user.findUnique({
+        where: { userId },
+        include: { plan: true },
+      }),
+    ]);
+
+    if (!user?.plan || user.plan.isPaid === false) {
+      throw new ForbiddenException(
+        'Esta funcionalidad está disponible solo para usuarios con plan de pago.',
+      );
+    }
 
     const imageUrl = await this.cloudinaryService.uploadImage(file.buffer, {
       public_id: `book-${book.bookId}-${Date.now()}`,
