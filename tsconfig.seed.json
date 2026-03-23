@@ -4,5 +4,5 @@
     "module": "CommonJS",
     "moduleResolution": "node"
   },
-  "include": ["prisma/seed.ts"]
+  "include": ["prisma/seed.ts", "prisma/ai-prompts.seed.ts"]
 }

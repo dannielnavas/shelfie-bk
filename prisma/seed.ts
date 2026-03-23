@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { aiPromptsSeed } from './ai-prompts.seed';
 
 const prisma = new PrismaClient();
 
@@ -46,6 +47,26 @@ async function main() {
     } as any,
   });
   console.log('Default plans inserted: Free, Premium, Lifetime.');
+
+  let promptsInserted = 0;
+  for (const row of aiPromptsSeed) {
+    const exists = await prisma.aiPrompt.findUnique({
+      where: { promptKey: row.promptKey },
+    });
+    if (!exists) {
+      await prisma.aiPrompt.create({
+        data: {
+          promptKey: row.promptKey,
+          content: row.content,
+          description: row.description,
+        },
+      });
+      promptsInserted += 1;
+    }
+  }
+  console.log(
+    `AiPrompts: ${promptsInserted} nuevos, ${aiPromptsSeed.length - promptsInserted} ya existían (no se sobrescriben).`,
+  );
 }
 
 main()

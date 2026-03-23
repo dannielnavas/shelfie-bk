@@ -1,0 +1,22 @@
+/** Claves de `ai_prompts.prompt_key` — deben coincidir con el seed. */
+export const AiPromptKey = {
+  RECOMMEND_BOOKS_SYSTEM: 'recommend_books.system',
+  RECOMMEND_BOOKS_USER: 'recommend_books.user',
+  SUMMARIZE_BOOK_SYSTEM: 'summarize_book.system',
+  SUMMARIZE_BOOK_USER: 'summarize_book.user',
+  SIMILAR_BOOKS_SYSTEM: 'similar_books.system',
+  SIMILAR_BOOKS_USER: 'similar_books.user',
+  READING_PLAN_AI_SYSTEM: 'reading_plan_ai.system',
+  READING_PLAN_AI_USER: 'reading_plan_ai.user',
+  ASK_BOOK_SYSTEM: 'ask_book.system',
+  ASK_BOOK_USER: 'ask_book.user',
+  READING_PLAN_COMPUTED_PLAN_TITLE: 'reading_plan_computed.plan_title',
+  READING_PLAN_COMPUTED_NOTES_PAGES: 'reading_plan_computed.notes_pages',
+  READING_PLAN_COMPUTED_NOTES_MINUTES: 'reading_plan_computed.notes_minutes',
+  READING_PLAN_COMPUTED_CONSTRAINTS_SUFFIX: 'reading_plan_computed.constraints_suffix',
+  READING_PLAN_DONE_PLAN_TITLE: 'reading_plan_done.plan_title',
+  READING_PLAN_DONE_NOTES: 'reading_plan_done.notes',
+  READING_PLAN_DAY_LABEL: 'reading_plan_day.label',
+  READING_PLAN_DAY_SUGGESTION_SINGLE: 'reading_plan_day.suggestion_single',
+  READING_PLAN_DAY_SUGGESTION_RANGE: 'reading_plan_day.suggestion_range',
+} as const;

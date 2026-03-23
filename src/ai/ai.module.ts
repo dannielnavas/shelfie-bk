@@ -3,15 +3,15 @@ import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { OpenRouterService } from './openrouter.service';
 import { OpenRouterRateLimitService } from './openrouter-rate-limit.service';
-import { OpenRouterRateLimitGuard } from './openrouter-rate-limit.guard';
+import { AiPromptService } from './ai-prompt.service';
 
 @Module({
   controllers: [AiController],
   providers: [
     AiService,
-    OpenRouterService,
+    AiPromptService,
     OpenRouterRateLimitService,
-    OpenRouterRateLimitGuard,
+    OpenRouterService,
   ],
   exports: [AiService, OpenRouterService],
 })

@@ -123,6 +123,16 @@ model AIRecommendation {
   @@map("ai_recommendations")
 }
 
+/// Plantillas de prompts para OpenRouter y textos derivados. Claves estables en código; contenido editable en BD.
+model AiPrompt {
+  promptKey   String   @id @map("prompt_key") @db.VarChar(80)
+  content     String   @db.Text
+  description String?  @db.VarChar(255)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp()
+
+  @@map("ai_prompts")
+}
+
 model MonthlyAiUsage {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")

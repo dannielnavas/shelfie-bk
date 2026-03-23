@@ -6,6 +6,7 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { OpenRouterRateLimitService } from './openrouter-rate-limit.service';
 
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 
@@ -17,6 +18,8 @@ type OpenRouterCompletionResponse = {
 @Injectable()
 export class OpenRouterService {
   private readonly baseUrl = 'https://openrouter.ai/api/v1';
+
+  constructor(private readonly rateLimiter: OpenRouterRateLimitService) {}
 
   private getApiKey(): string {
     const key = process.env.OPENROUTER_API_KEY?.trim();
@@ -62,8 +65,17 @@ export class OpenRouterService {
    */
   async chatCompletion(
     messages: ChatMessage[],
-    options?: { responseFormatJson?: boolean; model?: string },
+    options?: {
+      responseFormatJson?: boolean;
+      model?: string;
+      /** Si se indica, aplica el rate limit solo al llamar a OpenRouter (no en planes calculados en servidor). */
+      rateLimitUserId?: number;
+    },
   ): Promise<string> {
+    if (options?.rateLimitUserId != null) {
+      this.rateLimiter.assertAllowed(options.rateLimitUserId);
+    }
+
     const body: Record<string, unknown> = {
       model: this.resolveModel(options?.model),
       messages,

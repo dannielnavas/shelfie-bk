@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -38,12 +39,19 @@ export class ReadingPlanDto {
   @Min(0)
   pagesRead?: number;
 
-  /** Meta de minutos por día o páginas por día (el modelo interpreta el número). */
+  /**
+   * Meta diaria: páginas (por defecto) o minutos de lectura si `targetUnit` es `minutes`.
+   * El backend convierte minutos → páginas con ~2 min/página para el cálculo del plan.
+   */
   @IsOptional()
   @IsInt()
   @Min(1)
-  @Max(240)
+  @Max(600)
   targetPerDay?: number;
+
+  @IsOptional()
+  @IsIn(['pages', 'minutes'])
+  targetUnit?: 'pages' | 'minutes';
 
   @IsOptional()
   @IsString()
