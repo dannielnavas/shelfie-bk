@@ -8,6 +8,7 @@ import { ReadingPlanDto } from './dto/reading-plan.dto';
 import { AskBookDto } from './dto/ask-book.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { OpenRouterRateLimitGuard } from './openrouter-rate-limit.guard';
 
 @Controller('ai')
 @UseGuards(JwtAuthGuard)
@@ -23,6 +24,7 @@ export class AiController {
   }
 
   @Post('books/recommendations')
+  @UseGuards(OpenRouterRateLimitGuard)
   recommendBooks(
     @CurrentUser('userId') userId: number,
     @Body() dto: RecommendBooksDto,
@@ -31,6 +33,7 @@ export class AiController {
   }
 
   @Post('books/summary')
+  @UseGuards(OpenRouterRateLimitGuard)
   summarizeBook(
     @CurrentUser('userId') userId: number,
     @Body() dto: BookSummaryDto,
@@ -39,6 +42,7 @@ export class AiController {
   }
 
   @Post('books/similar')
+  @UseGuards(OpenRouterRateLimitGuard)
   similarBooks(
     @CurrentUser('userId') userId: number,
     @Body() dto: SimilarBooksDto,
@@ -47,6 +51,7 @@ export class AiController {
   }
 
   @Post('books/reading-plan')
+  @UseGuards(OpenRouterRateLimitGuard)
   readingPlan(
     @CurrentUser('userId') userId: number,
     @Body() dto: ReadingPlanDto,
@@ -55,6 +60,7 @@ export class AiController {
   }
 
   @Post('books/ask')
+  @UseGuards(OpenRouterRateLimitGuard)
   askAboutBook(
     @CurrentUser('userId') userId: number,
     @Body() dto: AskBookDto,

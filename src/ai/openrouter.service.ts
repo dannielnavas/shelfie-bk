@@ -1,5 +1,8 @@
 import {
   BadGatewayException,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -28,10 +31,29 @@ export class OpenRouterService {
     return key;
   }
 
+  /** Solo `openrouter/free` o ids terminados en `:free` (variante gratuita de OpenRouter). */
+  private assertFreeModelOnly(model: string): void {
+    const m = model.trim();
+    if (m === 'openrouter/free') return;
+    if (m.endsWith(':free')) return;
+    throw new BadRequestException({
+      statusCode: 400,
+      message:
+        'Solo se permiten modelos gratuitos: usa "openrouter/free" (router) o un modelo con sufijo ":free" (ej. meta-llama/llama-3.2-3b-instruct:free).',
+      error: 'OPENROUTER_MODEL_NOT_FREE',
+    });
+  }
+
+  /** Modelo efectivo tras validar que sea variante gratuita. */
+  resolveModel(override?: string): string {
+    const model =
+      (override ?? process.env.OPENROUTER_MODEL?.trim()) || 'openrouter/free';
+    this.assertFreeModelOnly(model);
+    return model;
+  }
+
   getDefaultModel(): string {
-    return (
-      process.env.OPENROUTER_MODEL?.trim() || 'openai/gpt-4o-mini'
-    );
+    return this.resolveModel();
   }
 
   /**
@@ -43,7 +65,7 @@ export class OpenRouterService {
     options?: { responseFormatJson?: boolean; model?: string },
   ): Promise<string> {
     const body: Record<string, unknown> = {
-      model: options?.model ?? this.getDefaultModel(),
+      model: this.resolveModel(options?.model),
       messages,
     };
     if (options?.responseFormatJson) {
@@ -75,6 +97,18 @@ export class OpenRouterService {
         message: 'Respuesta inválida del proveedor de IA',
         error: 'OPENROUTER_INVALID_RESPONSE',
       });
+    }
+
+    if (res.status === 429) {
+      const msg = data.error?.message || 'Rate limit de OpenRouter';
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.TOO_MANY_REQUESTS,
+          message: `OpenRouter (modelos gratuitos): ${msg}. Espera un momento o reduce la frecuencia de llamadas.`,
+          error: 'OPENROUTER_RATE_LIMIT',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     if (!res.ok) {
